@@ -267,7 +267,7 @@ public class RedisTutorialDemo {
             
             // 获取排行榜
             Set<String> topPlayers = new HashSet<>(jedis.zrevrange(leaderboardKey, 0, 4));
-            Set<redis.clients.jedis.resps.Tuple> topPlayersWithScores = (Set<redis.clients.jedis.resps.Tuple>) (Set<?>) jedis.zrevrangeWithScores(leaderboardKey, 0, 4);
+            List<redis.clients.jedis.resps.Tuple> topPlayersWithScores = jedis.zrevrangeWithScores(leaderboardKey, 0, 4);
             
             logger.info("Top 5玩家: {}", topPlayers);
             logger.info("Top 5玩家及分数:");
