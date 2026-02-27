@@ -1,0 +1,31 @@
+/*
+ * Gradle Settings配置文件
+ * 项目根配置
+ */
+
+// 根项目名称
+rootProject.name = 'spring-web-demo'
+
+// 如果有子项目，可以这样配置：
+// include 'web', 'service', 'repository'
+
+// 阿里云镜像配置（可选）
+pluginManagement {
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven { url 'https://maven.aliyun.com/repository/spring-plugin' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+// 依赖解析策略
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/spring' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        mavenCentral()
+    }
+}

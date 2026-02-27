@@ -1,0 +1,158 @@
+/*
+ * Spring Web Demo 项目 - Gradle构建文件
+ * 这是一个完整的Gradle配置示例，适用于Spring Web项目
+ */
+
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.springframework.boot' version '2.7.0' apply false
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+}
+
+group = 'com.example'
+version = '1.0.0'
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+// 阿里云镜像仓库配置
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url 'https://maven.aliyun.com/repository/spring' }
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    mavenCentral()
+}
+
+// 版本管理
+ext {
+    springVersion = '5.3.21'
+    servletVersion = '4.0.1'
+    jacksonVersion = '2.13.3'
+}
+
+dependencies {
+    // Spring框架核心依赖
+    implementation "org.springframework:spring-webmvc:${springVersion}"
+    implementation "org.springframework:spring-context:${springVersion}"
+    implementation "org.springframework:spring-jdbc:${springVersion}"
+    
+    // Servlet API (编译时需要，运行时由容器提供)
+    compileOnly "javax.servlet:javax.servlet-api:${servletVersion}"
+    providedRuntime "javax.servlet:javax.servlet-api:${servletVersion}"
+    
+    // JSP支持
+    compileOnly 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
+    providedRuntime 'javax.servlet.jsp:javax.servlet.jsp-api:2.3.3'
+    
+    // JSTL标签库
+    implementation 'javax.servlet:jstl:1.2'
+    
+    // JSON处理
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+    
+    // 日志框架
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    
+    // 测试依赖
+    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.mockito:mockito-core:4.6.1'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+}
+
+// 编译配置
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+// Java编译选项
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
+}
+
+// 测试配置
+test {
+    useJUnitPlatform()
+    
+    // 测试报告配置
+    reports {
+        junitXml.required = true
+        html.required = true
+    }
+    
+    // 测试失败时显示详细信息
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+// WAR打包配置
+war {
+    archiveFileName = "${project.name}-${version}.war"
+    
+    // 包含额外的资源文件
+    from('src/main/webapp') {
+        include '**/*.jsp'
+        include '**/*.html'
+        include '**/*.css'
+        include '**/*.js'
+    }
+}
+
+// Spring Boot配置（如果需要内嵌Tomcat）
+if (project.hasProperty('boot')) {
+    apply plugin: 'org.springframework.boot'
+    
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-tomcat'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+    
+    bootRun {
+        mainClass = 'com.example.demo.Application'
+        systemProperties = System.properties
+    }
+}
+
+// 自定义任务
+task copyWarToTomcat(type: Copy) {
+    description = '将WAR文件复制到Tomcat webapps目录'
+    group = 'deployment'
+    
+    from war
+    into System.getProperty('tomcat.home', 'C:/apache-tomcat-9.0.x/webapps')
+    
+    doLast {
+        println "WAR文件已复制到Tomcat目录"
+    }
+}
+
+task showDependencies {
+    description = '显示项目依赖树'
+    group = 'help'
+    
+    doLast {
+        configurations.compileClasspath.each { 
+            println it.name 
+        }
+    }
+}
+
+// 性能优化配置
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.fork = true
+        options.forkOptions.memoryMaximumSize = "1024m"
+    }
+}
+
+println "项目配置完成: ${project.name} v${version}"
+println "Java版本: ${JavaVersion.current()}"
+println "Gradle版本: ${gradle.gradleVersion}"
